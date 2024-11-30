@@ -1,0 +1,800 @@
+<html><head><base href="https://demo.example.com/queue/">
+<title>Queue Management System</title>
+<style>
+:root {
+  --primary: #FF9800;
+  --secondary: #FFC107;
+  --success: #4CAF50;
+  --danger: #f44336;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+.site-selector {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.site-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.site-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.container {
+  max-width: 600px; /* Reduced from 800px */
+  margin: 0 auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.queue-display {
+  text-align: center;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: var(--primary);
+  color: white;
+}
+
+.queue-display h1 {
+  margin: 0 0 10px 0;
+  font-size: 2em;
+  color: white;
+}
+
+.queue-display h2 {
+  margin: 0 0 15px 0;
+  font-size: 1.5em;
+  font-weight: normal;
+  color: rgba(255,255,255,0.9);
+}
+
+.current-number {
+  font-size: 4em;
+  font-weight: bold;
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.counter-label {
+  font-size: 0.4em;
+  background: rgba(255,255,255,0.2);
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+button {
+  padding: 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#nextButton {
+  padding: 20px;
+  font-size: 1.2em;
+  background-color: #2196F3; /* Changed from var(--success) to solid blue */
+  color: white;
+}
+
+#nextButton:hover {
+  background-color: #1976D2; /* Optional: Add hover state with slightly darker blue */
+}
+
+#resetButton {
+  background-color: var(--danger);
+  color: white;
+}
+
+#changeCounterButton {
+  background-color: var(--secondary);
+  color: black;
+}
+
+#takeNumberButton {
+  background-color: var(--primary);
+  color: white;
+  grid-column: 1 / -1;
+  font-size: 1.2em;
+  padding: 20px;
+}
+
+.queue-history {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.history-item {
+  padding: 8px;
+  margin: 5px 0;
+  background: white;
+  border-radius: 4px;
+  border-left: 4px solid var(--secondary);
+  display: flex;
+  justify-content: space-between;
+}
+
+.current {
+  border-left-color: var(--success);
+  background: #e8f5e9;
+}
+
+.ticket-modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  text-align: center;
+  z-index: 1000;
+}
+
+.ticket-number {
+  font-size: 3em;
+  color: var(--primary);
+  margin: 20px 0;
+}
+
+.site {
+  display: none;
+}
+
+.site.active {
+  display: block;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.number-change {
+  animation: pulse 0.5s ease-in-out;
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.service-btn {
+  background: white;
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  padding: 12px 15px;
+  text-align: left;
+  transition: all 0.3s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 80px;
+}
+
+.service-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.service-icon {
+  font-size: 24px;
+  color: var(--primary);
+}
+
+.service-btn:hover .service-icon {
+  color: white;
+}
+
+.service-btn small {
+  display: block;
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 4px;
+}
+
+.service-btn:hover small {
+  color: white;
+}
+
+.login-form {
+  max-width: 300px; /* Reduced from 400px */
+  margin: 100px auto; /* Increased top margin for better vertical centering */
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.login-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.analytics {
+  margin-top: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.stat-card {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-value {
+  font-size: 24px;
+  color: var(--primary);
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.stat-card h4 {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.login-message {
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.login-message.success {
+  background-color: var(--success);
+  color: white;
+}
+
+.login-message.error {
+  background-color: var(--danger);
+  color: white;
+}
+
+.logout-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: var(--danger);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: none;
+}
+
+#staffConsole .logout-btn {
+  display: block;
+}
+
+.admin-only {
+  display: none;
+}
+
+/* Add styles for the export button */
+.export-btn {
+  margin-top: 20px;
+  background-color: #2196F3;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.export-btn:hover {
+  background-color: #1976D2;
+}
+
+.export-btn::before {
+  content: "📊";
+  font-size: 1.2em;
+}
+</style>
+</head>
+<body>
+<div class="site-selector">
+  <button class="site-btn" onclick="switchSite('customer')">Customer</button>
+  <button class="site-btn" onclick="switchSite('staff')">Staff</button>
+</div>
+
+<div id="customerSite" class="site">
+  <div class="container">
+    <div class="queue-display">
+      <h1>Welcome to U Mobile Taman Molek!</h1>
+      <h2>Please select your service</h2>
+      <div class="current-number">
+        <span id="customerWaitingDisplay"></span>
+      </div>
+    </div>
+    
+    <div class="service-grid">
+      <button class="service-btn" onclick="takeNumber('New Line')">
+        <span class="service-icon">📱</span>
+        <span>New Line<br><small>(U Postpaid 38,68,98,128)</small></span>
+      </button>
+      <button class="service-btn" onclick="takeNumber('Port-in')">
+        <span class="service-icon">🔄</span>
+        <span>Port-in<br><small>(Switch line from Other Telco)</small></span>
+      </button>
+      <button class="service-btn" onclick="takeNumber('Broadband')">
+        <span class="service-icon">🌐</span>
+        <span>Broadband Internet<br><small>(U Home 5G with/without Router)</small></span>
+      </button>
+      <button class="service-btn" onclick="takeNumber('Payment')">
+        <span class="service-icon">💳</span>
+        <span>Bill Payment / Top Up<br><small>(Quick payment services)</small></span>
+      </button>
+      <button class="service-btn" onclick="takeNumber('Phone Purchase')">
+        <span class="service-icon">📲</span>
+        <span>iPhone / Android Phone<br><small>(Purchase new devices)</small></span>
+      </button>
+      <button class="service-btn" onclick="takeNumber('Free Phone')">
+        <span class="service-icon">🎁</span>
+        <span>Claim FREE Android Phone<br><small>(Prihatin Phone)</small></span>
+      </button>
+      <button class="service-btn" onclick="takeNumber('SIM')">
+        <span class="service-icon">💳</span>
+        <span>SIM Replacement / eSIM<br><small>(Take a New SIM card)</small></span>
+      </button>
+      <button class="service-btn" onclick="takeNumber('Plan Change')">
+        <span class="service-icon">📋</span>
+        <span>Plan Changes<br><small>(Plan Upgrade or Downgrade)</small></span>
+      </button>
+      <button class="service-btn" onclick="takeNumber('VIP Number')">
+        <span class="service-icon">⭐</span>
+        <span>Request VIP Number<br><small>(1313 or 2626 etc)</small></span>
+      </button>
+      <button class="service-btn" onclick="takeNumber('Other')">
+        <span class="service-icon">❓</span>
+        <span>Others Enquiry<br><small>(Technical support)</small></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="staffSite" class="site">
+  <div id="loginForm" class="login-form">
+    <h2>Staff Absolute Mobile Login</h2>
+    <p>Access with your ID</p>
+    <input type="text" id="username" placeholder="Username" autocomplete="username">
+    <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+    <button onclick="staffLogin()" class="site-btn">Login</button>
+  </div>
+
+  <div id="staffConsole" style="display: none;">
+    <button onclick="staffLogout()" class="logout-btn">Logout</button>
+    <div class="container">
+      <div class="queue-display">
+        <h2>Current Queue Number</h2>
+        <div class="current-number">
+          <span class="counter-label" id="counterLabel">Counter 1</span>
+          <span id="numberDisplay">No active ticket</span>
+        </div>
+        <p>Waiting: <span id="waitingCount">0</span></p>
+      </div>
+      
+      <div class="controls">
+        <button id="nextButton" style="grid-column: 1 / -1;">Next Number</button>
+        <button id="changeCounterButton" class="admin-only">Change Counter</button>
+        <button id="resetButton" class="admin-only">Reset Queue</button>
+      </div>
+      
+      <div class="analytics">
+        <h3>Queue Analytics</h3>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <h4>Today's Total</h4>
+            <div class="stat-value" id="todayTotal">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Weekly Average</h4>
+            <div class="stat-value" id="weeklyAvg">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Monthly Total</h4>
+            <div class="stat-value" id="monthlyTotal">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Current Wait Time</h4>
+            <div class="stat-value" id="currentWaitTime">0 min</div>
+          </div>
+          <div class="stat-card">
+            <h4>Average Wait Time</h4>
+            <div class="stat-value" id="avgWaitTime">0 min</div>
+          </div>
+          <div class="stat-card">
+            <h4>Peak Hours</h4>
+            <div class="stat-value" id="peakHours">-</div>
+          </div>
+        </div>
+        <button id="exportCSV" class="export-btn admin-only" onclick="exportQueueData()">
+          Export Queue Data (CSV)
+        </button>
+      </div>
+      
+      <div class="queue-history" id="queueHistory">
+        <!-- Staff history items will be added here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ticket-modal" id="ticketModal">
+  <h3>Your Queue Number</h3>
+  <div class="ticket-number" id="ticketNumber"></div>
+  <p>Please wait for your number to be called</p>
+  <button onclick="closeTicketModal()">Close</button>
+</div>
+
+<script>
+let queueArray = [];
+let queueHistory = [];
+let currentNumber = null;
+let waitingCount = 0;
+let currentCounter = 1;
+
+const serviceCounters = {
+  'New Line': { prefix: 'NL', counter: 0 },
+  'Port-in': { prefix: 'PI', counter: 0 },
+  'Broadband': { prefix: 'BI', counter: 0 },
+  'Payment': { prefix: 'BP', counter: 0 },
+  'Phone Purchase': { prefix: 'DP', counter: 0 },
+  'Free Phone': { prefix: 'FP', counter: 0 },
+  'SIM': { prefix: 'SR', counter: 0 },
+  'Plan Change': { prefix: 'PC', counter: 0 },
+  'VIP Number': { prefix: 'RN', counter: 0 },
+  'Other': { prefix: 'OE', counter: 0 }
+};
+
+// Staff user database (in production this would be server-side)
+const staffUsers = [
+  { username: 'staff1', password: 'staff123', role: 'staff', counter: 1 },
+  { username: 'staff2', password: 'staff123', role: 'staff', counter: 2 },
+  { username: 'staff3', password: 'staff123', role: 'staff', counter: 3 },
+  { username: 'admin1', password: 'admin123', role: 'admin' }
+];
+
+// Switch site function
+function switchSite(site) {
+  // Hide all sites first
+  document.querySelectorAll('.site').forEach(el => {
+    el.classList.remove('active');
+  });
+  
+  // Remove active class from all site buttons
+  document.querySelectorAll('.site-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show the selected site and activate its button
+  if (site === 'customer') {
+    document.getElementById('customerSite').classList.add('active');
+    document.querySelector('.site-btn:nth-child(1)').classList.add('active');
+  } else if (site === 'staff') {
+    document.getElementById('staffSite').classList.add('active');
+    document.querySelector('.site-btn:nth-child(2)').classList.add('active');
+  }
+}
+
+// Modify the staffLogin function
+function staffLogin() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  
+  const user = staffUsers.find(u => u.username === username && u.password === password);
+  
+  if (user) {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('staffConsole').style.display = 'block';
+    updateAnalytics();
+    
+    if (user.role === 'staff') {
+      // Set counter based on staff assignment
+      currentCounter = user.counter;
+      // Hide admin controls
+      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+      // Hide change counter and reset buttons for staff
+      document.getElementById('changeCounterButton').style.display = 'none';
+      document.getElementById('resetButton').style.display = 'none';
+    } else if (user.role === 'admin') {
+      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+      // Show all controls for admin
+      document.getElementById('changeCounterButton').style.display = 'block';
+      document.getElementById('resetButton').style.display = 'block';
+    }
+    
+    updateDisplay();
+    showLoginMessage('Login successful!', 'success');
+  } else {
+    showLoginMessage('Invalid username or password', 'error');
+  }
+}
+
+// Add login message function
+function showLoginMessage(message, type) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `login-message ${type}`;
+  messageDiv.textContent = message;
+  
+  const loginForm = document.querySelector('.login-form');
+  const existingMessage = loginForm.querySelector('.login-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  loginForm.insertBefore(messageDiv, loginForm.firstChild);
+  
+  setTimeout(() => messageDiv.remove(), 3000);
+}
+
+// Add logout function
+function staffLogout() {
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('staffConsole').style.display = 'none';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+}
+
+function updateDisplay() {
+  const numberDisplay = document.getElementById('numberDisplay');
+  const customerWaitingDisplay = document.getElementById('customerWaitingDisplay');
+  
+  if (currentNumber) {
+    numberDisplay.textContent = currentNumber;
+  } else {
+    numberDisplay.textContent = 'No active ticket';
+  }
+  
+  if (queueArray.length > 0) {
+    customerWaitingDisplay.textContent = `Next: ${queueArray[0].number}`;
+  } else {
+    customerWaitingDisplay.textContent = 'No waiting tickets';
+  }
+  
+  document.getElementById('counterLabel').textContent = `Counter ${currentCounter}`;
+  document.getElementById('waitingCount').textContent = queueArray.length;
+  
+  numberDisplay.classList.add('number-change');
+  setTimeout(() => {
+    numberDisplay.classList.remove('number-change');
+  }, 500);
+}
+
+function addToHistory(number, counter, status, site = 'staff', service = '') {
+  // Only proceed if this is for the staff site
+  if (site === 'staff') {
+    const historyItem = document.createElement('div');
+    historyItem.className = `history-item ${status === 'current' ? 'current' : ''}`;
+    historyItem.innerHTML = `
+      <span>Number: ${number} ${counter ? `(Counter ${counter})` : ''} ${service ? `- ${service}` : ''}</span>
+      <span>${new Date().toLocaleTimeString()}</span>
+    `;
+    document.getElementById('queueHistory').insertBefore(historyItem, document.getElementById('queueHistory').firstChild);
+  }
+}
+
+function showTicketModal(number) {
+  document.getElementById('ticketNumber').textContent = number;
+  document.getElementById('ticketModal').style.display = 'block';
+}
+
+function closeTicketModal() {
+  document.getElementById('ticketModal').style.display = 'none';
+}
+
+let totalWaitTime = 0;
+let servedCustomers = 0;
+
+function calculateWaitTime(startTime) {
+  return Math.floor((new Date().getTime() - startTime) / (1000 * 60)); // Convert to minutes
+}
+
+function updateWaitTimeDisplay() {
+  const currentWaitTimeDisplay = document.getElementById('currentWaitTime');
+  const avgWaitTimeDisplay = document.getElementById('avgWaitTime');
+  
+  // Calculate current wait time for first person in queue
+  if (queueArray.length > 0) {
+    const currentWait = calculateWaitTime(queueArray[0].startWaitTime);
+    currentWaitTimeDisplay.textContent = `${currentWait} min`;
+  } else {
+    currentWaitTimeDisplay.textContent = '0 min';
+  }
+  
+  // Calculate average wait time
+  const avgWait = servedCustomers > 0 ? Math.floor(totalWaitTime / servedCustomers) : 0;
+  avgWaitTimeDisplay.textContent = `${avgWait} min`;
+}
+
+function takeNumber(service) {
+  serviceCounters[service].counter++;
+  const paddedCounter = String(serviceCounters[service].counter).padStart(3, '0');
+  const ticketNumber = `${serviceCounters[service].prefix}${paddedCounter}`;
+  
+  queueArray.push({
+    number: ticketNumber,
+    service: service,
+    timestamp: new Date(),
+    startWaitTime: new Date().getTime()
+  });
+  
+  waitingCount++;
+  updateDisplay();
+  showTicketModal(ticketNumber);
+}
+
+function updateAnalytics() {
+  const totalServed = Object.values(serviceCounters)
+    .reduce((sum, counter) => sum + counter.counter, 0);
+    
+  document.getElementById('todayTotal').textContent = totalServed;
+  document.getElementById('weeklyAvg').textContent = Math.floor(totalServed * 7);
+  document.getElementById('monthlyTotal').textContent = Math.floor(totalServed * 30);
+  
+  // Update wait times
+  updateWaitTimeDisplay();
+  
+  // Calculate and display peak hours (simplified version)
+  const hour = new Date().getHours();
+  const peakHours = hour >= 11 && hour <= 14 ? '11AM-2PM' : 
+                    hour >= 15 && hour <= 18 ? '3PM-6PM' : 'Normal';
+  document.getElementById('peakHours').textContent = peakHours;
+}
+
+// Modify the existing nextButton click handler
+document.getElementById('nextButton').addEventListener('click', () => {
+  if (queueArray.length > 0) {
+    const nextTicket = queueArray.shift();
+    currentNumber = nextTicket.number;
+    
+    // Calculate and add to total wait time
+    const waitTime = calculateWaitTime(nextTicket.startWaitTime);
+    totalWaitTime += waitTime;
+    servedCustomers++;
+    
+    // Store in history
+    queueHistory.push({
+      ticketNumber: nextTicket.number,
+      service: nextTicket.service,
+      counter: currentCounter,
+      waitTime: waitTime,
+      servedTime: new Date().toISOString(),
+      startTime: new Date(nextTicket.startWaitTime).toISOString()
+    });
+    
+    updateDisplay();
+    addToHistory(currentNumber, currentCounter, 'current', 'staff', nextTicket.service);
+    updateAnalytics();
+  }
+});
+
+// Add export function
+function exportQueueData() {
+  // Create CSV header
+  let csvContent = "Ticket Number,Service Type,Counter,Wait Time (min),Start Time,Served Time\n";
+  
+  // Add data rows
+  queueHistory.forEach(record => {
+    csvContent += `${record.ticketNumber},${record.service},${record.counter},${record.waitTime},${record.startTime},${record.servedTime}\n`;
+  });
+  
+  // Create download link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute("href", url);
+  link.setAttribute("download", `queue_data_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Modify reset button to also clear history
+document.getElementById('resetButton').addEventListener('click', () => {
+  currentNumber = null;
+  currentCounter = 1;
+  queueArray = [];
+  queueHistory = []; // Clear history
+  totalWaitTime = 0;
+  servedCustomers = 0;
+  for (let service in serviceCounters) {
+    serviceCounters[service].counter = 0;
+  }
+  updateDisplay();
+  document.getElementById('queueHistory').innerHTML = '';
+  updateAnalytics();
+});
+
+// Add event listener for enter key on password input
+document.getElementById('password').addEventListener('keypress', function(event) {
+  if (event.key === 'Enter') {
+    staffLogin();
+  }
+});
+
+// Also add it to username field in case they tab/enter there
+document.getElementById('username').addEventListener('keypress', function(event) {
+  if (event.key === 'Enter') {
+    staffLogin();
+  }
+});
+
+// Initialize
+switchSite('customer');
+updateDisplay();
+addToHistory(currentNumber, currentCounter, 'current');
+</script>
+</body>
+</html>
